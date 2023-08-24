@@ -5,3 +5,5 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   rabbitmq_host: {{ .Release.Name }}
+  rabbitmq.conf: |-
+{{ .Files.Get "rabbitmq.conf" | indent 4 }}
