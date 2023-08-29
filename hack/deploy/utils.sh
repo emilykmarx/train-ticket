@@ -27,13 +27,18 @@ tsPassword="Ts_123456"
 tsDB="ts"
 
 
-function deploy_infrastructures {
+function deploy_mysql_for_nacos {
   namespace=$1
   echo "Start deployment Step <1/3>------------------------------------"
   echo "Start to deploy mysql cluster for nacos."
   helm install $nacosDBRelease --set mysql.mysqlUser=$nacosDBUser --set mysql.mysqlPassword=$nacosDBPass --set mysql.mysqlDatabase=$nacosDBName $mysqlCharts -n $namespace
   echo "Waiting for mysql cluster of nacos to be ready ......"
   kubectl rollout status statefulset/$nacosDBRelease-mysql -n $namespace
+  $TT_ROOT/mysql_ipv6.sh $nacosDBRelease-mysql
+}
+
+function deploy_nacos_and_rmq {
+  namespace=$1
   echo "Start to deploy nacos."
   helm install $nacosRelease --set nacos.db.host=$nacosDBHost --set nacos.db.username=$nacosDBUser --set nacos.db.name=$nacosDBName --set nacos.db.password=$nacosDBPass $nacosCharts -n $namespace
   echo "Waiting for nacos to be ready ......"
@@ -43,6 +48,12 @@ function deploy_infrastructures {
   echo "Waiting for rabbitmq to be ready ......"
   kubectl rollout status deployment/$rabbitmqRelease -n $namespace
   echo "End deployment Step <1/3>--------------------------------------"
+}
+
+function deploy_infrastructures {
+  namespace=$1
+  deploy_mysql_for_nacos $namespace
+  deploy_nacos_and_rmq $namespace
 }
 
 function deploy_monitoring {
@@ -64,9 +75,11 @@ function deploy_tt_mysql_all_in_one {
   echo "Waiting for mysql cluster of train-ticket to be ready ......"
   kubectl rollout status statefulset/${tsMysqlName}-mysql -n $namespace
   gen_secret_for_services $tsUser $tsPassword $tsDB "${tsMysqlName}-mysql-leader"
+  $TT_ROOT/mysql_ipv6.sh $tsMysqlName-mysql
   echo "End deployment Step <2/3>-----------------------------------------------------------------"
 }
 
+# I didn't add ipv6 support to this
 function deploy_tt_mysql_each_service {
   echo "Start deployment Step <2/3>: mysql clusters of train-ticket services. ----------------------"
   namespace=$1
@@ -114,4 +127,3 @@ function deploy_tt_dp_sw {
   kubectl apply -f deployment/kubernetes-manifests/quickstart-k8s/yamls/sw_deploy.yaml -n $namespace > /dev/null
   echo "End deployment Step <3/3>----------------------------------------------------------------------"
 }
-

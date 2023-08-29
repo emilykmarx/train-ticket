@@ -94,7 +94,7 @@ function parse_args {
 
 echo "args num: $#"
 if [ $# == 2 ]; then
-  argNone=0
+  argNone=1 # cause `make deploy` to do quick_start
   parse_args $args
 fi
 deploy
