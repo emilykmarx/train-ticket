@@ -17,6 +17,17 @@ data:
       - targets:
         - localhost:9090
 
+    - job_name: elasticsearch
+      static_configs:
+      - targets:
+        # Need fqdn since prom is in a different namespace from the exporter svc
+        - es-exporter-prometheus-elasticsearch-exporter.default.svc.cluster.local:9108
+
+    - job_name: logstash
+      static_configs:
+      - targets:
+        - ls-exporter-logstash-exporter.default.svc.cluster.local:9198
+
     - job_name: 'node-exporter'
       kubernetes_sd_configs:
         - role: endpoints
