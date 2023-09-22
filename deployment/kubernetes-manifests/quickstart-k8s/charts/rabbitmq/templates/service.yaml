@@ -5,6 +5,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
-    - port: {{ .Values.rabbitmq.serverPort }}
+    - name: server
+      port: {{ .Values.rabbitmq.serverPort }}
+    - name: metrics
+      port: 15692
   selector:
     app: {{ .Release.Name }}
